@@ -406,9 +406,19 @@ export default function SmartGoluHeritageApp() {
                 )}
               </button>
 
+              {/* Player Labels */}
+              <div className="player-labels">
+                <span className="listen-tamil-title">
+                  {currentLang === "ta" ? "கதையைக் கேளுங்கள்" : "Listen to the Story"}
+                </span>
+                <span className="listen-english-sub">
+                  {currentLang === "ta" ? "தமிழ் குரல் ஒலிபரப்பு" : "Voice Narration"}
+                </span>
+              </div>
+
               {/* Animated Waveform Visualizer */}
               <div className={`waveform-container ${isPlaying ? "active" : ""}`}>
-                {[6, 12, 18, 14, 24, 16, 22, 12, 26, 18, 14, 22, 16, 20, 10, 18, 24, 14, 8].map(
+                {[8, 14, 22, 16, 26, 18, 14, 24, 16, 10].map(
                   (h, i) => (
                     <div
                       key={i}
@@ -419,16 +429,6 @@ export default function SmartGoluHeritageApp() {
                     />
                   )
                 )}
-              </div>
-
-              {/* Player Labels */}
-              <div className="player-labels">
-                <span className="listen-tamil-title">
-                  {currentLang === "ta" ? "கதையைக் கேளுங்கள்" : "Listen to the Story"}
-                </span>
-                <span className="listen-english-sub">
-                  {currentLang === "ta" ? "தமிழ் குரல் ஒலிபரப்பு" : "Voice Narration"}
-                </span>
               </div>
             </div>
 
