@@ -15,6 +15,7 @@ export default function SmartGoluHeritageApp() {
   const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
+  const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoplayedRef = useRef<boolean>(false);
   const prevDollIdRef = useRef<number | null>(null);
@@ -118,6 +119,11 @@ export default function SmartGoluHeritageApp() {
 
   // Stop audio and speech synthesis
   const stopAudio = () => {
+    if (htmlAudioRef.current) {
+      htmlAudioRef.current.pause();
+      htmlAudioRef.current.currentTime = 0;
+      htmlAudioRef.current = null;
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -133,7 +139,7 @@ export default function SmartGoluHeritageApp() {
     setPlaybackTime(0);
   };
 
-  // Play speech narration strictly in chosen language
+  // Fallback speech narration via Web Speech API
   const speakLakshmiStory = (targetLang: "ta" | "en", lakshmi: LakshmiStory = currentLakshmi) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
@@ -176,29 +182,56 @@ export default function SmartGoluHeritageApp() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Start audio narration & timer
+  // Start audio narration & timer using high quality audio streaming
   const startAudioNarration = (
     targetLang: "ta" | "en" = currentLang,
     lakshmi: LakshmiStory = currentLakshmi
   ) => {
     playSacredChime();
-    speakLakshmiStory(targetLang, lakshmi);
+
+    // Clear any previous audio instance
+    if (htmlAudioRef.current) {
+      htmlAudioRef.current.pause();
+      htmlAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    const textToSpeak =
+      targetLang === "ta"
+        ? `${lakshmi.tamilName}. ${lakshmi.tamilStory}`
+        : `${lakshmi.name}. ${lakshmi.englishStory}`;
+
+    // Play native high-fidelity audio stream from server
+    const audioUrl = `/api/tts?lang=${targetLang}&text=${encodeURIComponent(textToSpeak)}`;
+    const audio = new Audio(audioUrl);
+    htmlAudioRef.current = audio;
+
     setIsPlaying(true);
     setPlaybackTime(0);
 
-    const dur = lakshmi.durationSeconds || 138;
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-    timerIntervalRef.current = setInterval(() => {
-      setPlaybackTime((prev) => {
-        if (prev >= dur) {
-          stopAudio();
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 1000);
+    audio.ontimeupdate = () => {
+      setPlaybackTime(Math.floor(audio.currentTime));
+    };
+
+    audio.onended = () => {
+      stopAudio();
+    };
+
+    audio.onerror = () => {
+      console.warn("Server TTS audio error, attempting Web Speech fallback...");
+      speakLakshmiStory(targetLang, lakshmi);
+    };
+
+    audio.play().catch((err) => {
+      console.warn("Audio autoplay policy restricted, using speech synthesis fallback:", err);
+      speakLakshmiStory(targetLang, lakshmi);
+    });
   };
 
   // 1. Autoplay narration once on initial page load / first visitor gesture
@@ -266,8 +299,7 @@ export default function SmartGoluHeritageApp() {
     if (currentLang === newLang) return;
     setCurrentLang(newLang);
     if (isPlaying) {
-      playSacredChime();
-      speakLakshmiStory(newLang, currentLakshmi);
+      startAudioNarration(newLang, currentLakshmi);
     }
   };
 
@@ -276,7 +308,11 @@ export default function SmartGoluHeritageApp() {
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const newProgress = Math.max(0, Math.min(1, clickX / rect.width));
-    setPlaybackTime(Math.round(newProgress * totalDuration));
+    const newSecs = Math.round(newProgress * totalDuration);
+    setPlaybackTime(newSecs);
+    if (htmlAudioRef.current && !isNaN(htmlAudioRef.current.duration)) {
+      htmlAudioRef.current.currentTime = Math.min(newSecs, htmlAudioRef.current.duration);
+    }
   };
 
   return (
