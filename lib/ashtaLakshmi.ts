@@ -39,7 +39,7 @@ export const ASHTA_LAKSHMI_DATA: LakshmiStory[] = [
     name: "Dhana Lakshmi",
     tamilName: "ஸ்ரீ மகாலட்சுமி (தன லட்சுமி)",
     subtitle: "Goddess of Wealth & Prosperity",
-    image: "/images/lakshmi-2.jpg",
+    image: "/images/highres-2.jpg",
     badges: [
       { icon: "🪙", tamil: "செல்வம்", english: "Wealth" },
       { icon: "🪷", tamil: "செழிப்பு", english: "Prosperity" },
