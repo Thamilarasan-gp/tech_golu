@@ -399,23 +399,6 @@ export default function SmartGoluHeritageApp() {
           <circle cx="20" cy="43" r="3" fill="#6B1426" />
         </svg>
       </footer>
-
-      {/* 8-Doll Rapid Selector Strip */}
-      <nav className="selector-strip" aria-label="Ashta Lakshmi Selector">
-        {ASHTA_LAKSHMI_DATA.map((doll) => (
-          <button
-            key={doll.id}
-            onClick={() => {
-              setSelectedDollId(doll.id);
-              stopAudio();
-            }}
-            className={`doll-pill ${selectedDollId === doll.id ? "active" : ""}`}
-            title={`${doll.id}. ${doll.name} (${doll.tamilName})`}
-          >
-            {doll.id}
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }
