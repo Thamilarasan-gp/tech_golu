@@ -469,7 +469,7 @@ export default function SmartGoluHeritageApp() {
             </span>
           )}
           <span className="footer-team-banner">
-            With Love ❤️ • Thamilarasan, Kishore, Jagadeesh
+            With Love ❤️ Thamilarasan, Kishore, Jagadeesh
           </span>
         </div>
 
