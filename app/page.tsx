@@ -16,6 +16,7 @@ export default function SmartGoluHeritageApp() {
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoplayedRef = useRef<boolean>(false);
 
   const currentLakshmi: LakshmiStory = getLakshmiDataById(selectedDollId);
   const totalDuration = currentLakshmi.durationSeconds || 138;
@@ -174,22 +175,15 @@ export default function SmartGoluHeritageApp() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Main Speaker Play/Pause Handler
-  const togglePlayAudio = () => {
-    if (isPlaying) {
-      stopAudio();
-      return;
-    }
-
-    // 1. Play temple sacred chime
+  // Start audio narration & timer
+  const startAudioNarration = (targetLang: "ta" | "en" = currentLang) => {
     playSacredChime();
-
-    // 2. Play speech narration strictly in active language toggle
-    speakLakshmiStory(currentLang);
-
+    speakLakshmiStory(targetLang);
     setIsPlaying(true);
 
-    // Track elapsed time
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
     timerIntervalRef.current = setInterval(() => {
       setPlaybackTime((prev) => {
         if (prev >= totalDuration) {
@@ -199,6 +193,48 @@ export default function SmartGoluHeritageApp() {
         return prev + 1;
       });
     }, 1000);
+  };
+
+  // Autoplay narration once on initial page load / first visitor interaction
+  useEffect(() => {
+    let triggered = false;
+
+    const playOnce = () => {
+      if (triggered || hasAutoplayedRef.current) return;
+      triggered = true;
+      hasAutoplayedRef.current = true;
+      startAudioNarration(currentLang);
+    };
+
+    // 1. Direct autoplay attempt after 700ms
+    const timer = setTimeout(() => {
+      playOnce();
+    }, 700);
+
+    // 2. Gesture fallback for browsers enforcing strict user interaction policies
+    const handleFirstTouch = () => {
+      playOnce();
+      window.removeEventListener("click", handleFirstTouch);
+      window.removeEventListener("touchstart", handleFirstTouch);
+    };
+
+    window.addEventListener("click", handleFirstTouch, { once: true });
+    window.addEventListener("touchstart", handleFirstTouch, { once: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("click", handleFirstTouch);
+      window.removeEventListener("touchstart", handleFirstTouch);
+    };
+  }, []);
+
+  // Main Speaker Play/Pause Handler
+  const togglePlayAudio = () => {
+    if (isPlaying) {
+      stopAudio();
+    } else {
+      startAudioNarration(currentLang);
+    }
   };
 
   // Language toggle handler: immediately updates story text & voice
@@ -404,7 +440,7 @@ export default function SmartGoluHeritageApp() {
             NAVARATRI GOLU • PRIDE OF TAMIL HERITAGE
           </span>
           <span className="footer-team-banner">
-            With Love • Thamilarasan, Kishore, Jagadeesh from IT
+            With Love ❤️ • Thamilarasan, Kishore, Jagadeesh
           </span>
         </div>
 
