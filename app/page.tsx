@@ -17,6 +17,7 @@ export default function SmartGoluHeritageApp() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoplayedRef = useRef<boolean>(false);
+  const prevDollIdRef = useRef<number | null>(null);
 
   const currentLakshmi: LakshmiStory = getLakshmiDataById(selectedDollId);
   const totalDuration = currentLakshmi.durationSeconds || 138;
@@ -133,14 +134,14 @@ export default function SmartGoluHeritageApp() {
   };
 
   // Play speech narration strictly in chosen language
-  const speakLakshmiStory = (targetLang: "ta" | "en") => {
+  const speakLakshmiStory = (targetLang: "ta" | "en", lakshmi: LakshmiStory = currentLakshmi) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
 
     const textToSpeak =
       targetLang === "ta"
-        ? `${currentLakshmi.tamilName}. ${currentLakshmi.tamilStory}`
-        : `${currentLakshmi.name}. ${currentLakshmi.englishStory}`;
+        ? `${lakshmi.tamilName}. ${lakshmi.tamilStory}`
+        : `${lakshmi.name}. ${lakshmi.englishStory}`;
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
 
@@ -176,17 +177,22 @@ export default function SmartGoluHeritageApp() {
   };
 
   // Start audio narration & timer
-  const startAudioNarration = (targetLang: "ta" | "en" = currentLang) => {
+  const startAudioNarration = (
+    targetLang: "ta" | "en" = currentLang,
+    lakshmi: LakshmiStory = currentLakshmi
+  ) => {
     playSacredChime();
-    speakLakshmiStory(targetLang);
+    speakLakshmiStory(targetLang, lakshmi);
     setIsPlaying(true);
+    setPlaybackTime(0);
 
+    const dur = lakshmi.durationSeconds || 138;
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
     timerIntervalRef.current = setInterval(() => {
       setPlaybackTime((prev) => {
-        if (prev >= totalDuration) {
+        if (prev >= dur) {
           stopAudio();
           return 0;
         }
@@ -195,7 +201,7 @@ export default function SmartGoluHeritageApp() {
     }, 1000);
   };
 
-  // Autoplay narration once on initial page load / first visitor interaction
+  // 1. Autoplay narration once on initial page load / first visitor gesture
   useEffect(() => {
     let triggered = false;
 
@@ -203,15 +209,15 @@ export default function SmartGoluHeritageApp() {
       if (triggered || hasAutoplayedRef.current) return;
       triggered = true;
       hasAutoplayedRef.current = true;
-      startAudioNarration(currentLang);
+      startAudioNarration(currentLang, currentLakshmi);
     };
 
-    // 1. Direct autoplay attempt after 700ms
+    // Direct autoplay attempt after 700ms
     const timer = setTimeout(() => {
       playOnce();
     }, 700);
 
-    // 2. Gesture fallback for browsers enforcing strict user interaction policies
+    // Gesture fallback for browsers enforcing strict user interaction policies
     const handleFirstTouch = () => {
       playOnce();
       window.removeEventListener("click", handleFirstTouch);
@@ -228,12 +234,30 @@ export default function SmartGoluHeritageApp() {
     };
   }, []);
 
+  // 2. Automatically play audio narration whenever deity changes from one to another
+  useEffect(() => {
+    if (prevDollIdRef.current === null) {
+      prevDollIdRef.current = selectedDollId;
+      return;
+    }
+
+    if (prevDollIdRef.current !== selectedDollId) {
+      prevDollIdRef.current = selectedDollId;
+      const nextLakshmi = getLakshmiDataById(selectedDollId);
+      stopAudio();
+      const changeTimer = setTimeout(() => {
+        startAudioNarration(currentLang, nextLakshmi);
+      }, 400);
+      return () => clearTimeout(changeTimer);
+    }
+  }, [selectedDollId, currentLang]);
+
   // Main Speaker Play/Pause Handler
   const togglePlayAudio = () => {
     if (isPlaying) {
       stopAudio();
     } else {
-      startAudioNarration(currentLang);
+      startAudioNarration(currentLang, currentLakshmi);
     }
   };
 
@@ -243,7 +267,7 @@ export default function SmartGoluHeritageApp() {
     setCurrentLang(newLang);
     if (isPlaying) {
       playSacredChime();
-      speakLakshmiStory(newLang);
+      speakLakshmiStory(newLang, currentLakshmi);
     }
   };
 
@@ -279,8 +303,10 @@ export default function SmartGoluHeritageApp() {
           <div className="lotus-logo">🪷</div>
           <div className="header-title-box">
             <h1>SMART GOLU</h1>
-            <p className="header-subtitle tamil-font">
-              தமிழ் மரபின் அழகிய கதைகள் • Stories of our heritage
+            <p className={`header-subtitle ${currentLang === "ta" ? "tamil-font" : ""}`}>
+              {currentLang === "ta"
+                ? "நவராத்திரி கொலு • தமிழ் மரபின் அழகிய கதைகள்"
+                : "Navaratri Golu • Stories of Our Heritage"}
             </p>
           </div>
         </div>
@@ -433,12 +459,15 @@ export default function SmartGoluHeritageApp() {
         </svg>
 
         <div className="footer-center-text">
-          <span className="footer-tamil-banner">
-            நவராத்திரி கொலு • தமிழர் பண்பாட்டின் பெருமை
-          </span>
-          <span className="footer-english-banner">
-            NAVARATRI GOLU • PRIDE OF TAMIL HERITAGE
-          </span>
+          {currentLang === "ta" ? (
+            <span className="footer-tamil-banner">
+              நவராத்திரி கொலு • தமிழர் பண்பாட்டின் பெருமை
+            </span>
+          ) : (
+            <span className="footer-english-banner">
+              NAVARATRI GOLU • PRIDE OF TAMIL HERITAGE
+            </span>
+          )}
           <span className="footer-team-banner">
             With Love ❤️ • Thamilarasan, Kishore, Jagadeesh
           </span>
