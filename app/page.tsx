@@ -281,14 +281,6 @@ export default function SmartGoluHeritageApp() {
                 height={420}
                 priority
               />
-
-              {/* IoT Active indicator */}
-              {activeDollId === currentLakshmi.id && (
-                <div className="iot-active-badge">
-                  <span className="pulse-led" />
-                  <span>GOLU LIT</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -410,6 +402,9 @@ export default function SmartGoluHeritageApp() {
           </span>
           <span className="footer-english-banner">
             NAVARATRI GOLU • PRIDE OF TAMIL HERITAGE
+          </span>
+          <span className="footer-team-banner">
+            With Love • Thamilarasan, Kishore, Jagadeesh from IT
           </span>
         </div>
 
