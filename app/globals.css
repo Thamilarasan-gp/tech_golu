@@ -103,14 +103,18 @@ body {
   gap: 9px;
 }
 
-.lotus-logo {
-  width: 38px;
-  height: 38px;
+.header-logo-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  filter: drop-shadow(0 2px 4px rgba(201, 151, 56, 0.5));
+  margin-bottom: 2px;
+}
+
+.header-brand-logo {
+  height: 38px;
+  width: auto;
+  max-width: 155px;
+  object-fit: contain;
+  display: block;
 }
 
 .header-title-box h1 {
@@ -559,6 +563,11 @@ body {
     display: none !important;
   }
 
+  .header-brand-logo {
+    height: 32px;
+    max-width: 130px;
+  }
+
   .mandapam-arch {
     max-width: 360px;
     margin: 0 auto;
@@ -636,14 +645,9 @@ body {
     margin-bottom: 1.75rem;
   }
 
-  .lotus-logo {
-    font-size: 30px;
-    width: 44px;
-    height: 44px;
-  }
-
-  .header-title-box h1 {
-    font-size: 26px;
+  .header-brand-logo {
+    height: 48px;
+    max-width: 190px;
   }
 
   .header-subtitle {

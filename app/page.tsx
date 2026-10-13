@@ -300,14 +300,15 @@ export default function SmartGoluHeritageApp() {
       {/* Top Header Bar */}
       <header className="header-bar">
         <div className="header-left">
-          <div className="lotus-logo">🪷</div>
-          <div className="header-title-box">
-            <h1>SMART GOLU</h1>
-            <p className={`header-subtitle ${currentLang === "ta" ? "tamil-font" : ""}`}>
-              {currentLang === "ta"
-                ? "நவராத்திரி கொலு • தமிழ் மரபின் அழகிய கதைகள்"
-                : "Navaratri Golu • Stories of Our Heritage"}
-            </p>
+          <div className="header-logo-wrapper">
+            <Image
+              src="/images/smart-golu-tales.png"
+              alt="Smart Golu Tales"
+              width={150}
+              height={74}
+              priority
+              className="header-brand-logo"
+            />
           </div>
         </div>
 
