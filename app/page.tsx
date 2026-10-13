@@ -11,12 +11,10 @@ export default function SmartGoluHeritageApp() {
   const [selectedDollId, setSelectedDollId] = useState<number>(2);
   const [currentLang, setCurrentLang] = useState<"ta" | "en">("ta");
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [isAudioUnlocked, setIsAudioUnlocked] = useState<boolean>(false);
   const [playbackTime, setPlaybackTime] = useState<number>(0);
   const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasAutoplayedRef = useRef<boolean>(false);
   const prevDollIdRef = useRef<number | null>(null);
@@ -66,6 +64,7 @@ export default function SmartGoluHeritageApp() {
             if (newId >= 1 && newId <= 8) {
               setActiveDollId(newId);
               setSelectedDollId(newId);
+              // Stop previous speech if switching dolls
               stopAudio();
             }
           }
@@ -89,21 +88,11 @@ export default function SmartGoluHeritageApp() {
   };
 
   // Sound generator for pleasant temple bell & tanpura ambient chime
-  const playSacredChime = async () => {
+  const playSacredChime = () => {
     try {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-
-      if (!audioContextRef.current || audioContextRef.current.state === "closed") {
-        audioContextRef.current = new AudioCtx();
-      }
-      const ctx = audioContextRef.current;
-      if (ctx.state === "suspended") {
-        await ctx.resume().catch(() => {});
-      }
-      if (ctx.state !== "running") return;
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AudioCtx();
+      audioContextRef.current = ctx;
 
       // Temple bell harmonic frequencies (G4, D5, G5)
       [392.0, 587.33, 783.99].forEach((freq, index) => {
@@ -132,10 +121,10 @@ export default function SmartGoluHeritageApp() {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    if (utteranceRef.current) {
-      utteranceRef.current = null;
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => { });
+      audioContextRef.current = null;
     }
-    // Keep audioContext alive in running state so future Realtime doll switches can play sound smoothly
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
@@ -145,68 +134,46 @@ export default function SmartGoluHeritageApp() {
   };
 
   // Play speech narration strictly in chosen language
-  const speakLakshmiStory = (
-    targetLang: "ta" | "en",
-    lakshmi: LakshmiStory = currentLakshmi,
-    onSpeechStart?: () => void
-  ) => {
+  const speakLakshmiStory = (targetLang: "ta" | "en", lakshmi: LakshmiStory = currentLakshmi) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
 
-    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-      window.speechSynthesis.cancel();
+    const textToSpeak =
+      targetLang === "ta"
+        ? `${lakshmi.tamilName}. ${lakshmi.tamilStory}`
+        : `${lakshmi.name}. ${lakshmi.englishStory}`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+    const voices = window.speechSynthesis.getVoices();
+    if (targetLang === "ta") {
+      const tamilVoice = voices.find((v) => v.lang.toLowerCase().includes("ta"));
+      if (tamilVoice) {
+        utterance.voice = tamilVoice;
+      }
+      utterance.lang = "ta-IN";
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+    } else {
+      const englishVoice = voices.find(
+        (v) => v.lang.toLowerCase().includes("en-in") || v.lang.toLowerCase().includes("en")
+      );
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      utterance.lang = "en-IN";
+      utterance.rate = 0.95;
     }
 
-    // 60ms delay prevents Chrome / Android TTS queue lock when canceling and speaking
-    setTimeout(() => {
-      const textToSpeak =
-        targetLang === "ta"
-          ? `${lakshmi.tamilName}. ${lakshmi.tamilStory}`
-          : `${lakshmi.name}. ${lakshmi.englishStory}`;
+    utterance.onend = () => {
+      stopAudio();
+    };
 
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utteranceRef.current = utterance; // Prevent garbage collection mid-speech
+    utterance.onerror = () => {
+      stopAudio();
+    };
 
-      const voices = window.speechSynthesis.getVoices();
-      if (targetLang === "ta") {
-        const tamilVoice = voices.find((v) => v.lang.toLowerCase().includes("ta"));
-        if (tamilVoice) {
-          utterance.voice = tamilVoice;
-        }
-        utterance.lang = "ta-IN";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-      } else {
-        const englishVoice = voices.find(
-          (v) => v.lang.toLowerCase().includes("en-in") || v.lang.toLowerCase().includes("en")
-        );
-        if (englishVoice) {
-          utterance.voice = englishVoice;
-        }
-        utterance.lang = "en-IN";
-        utterance.rate = 0.95;
-      }
-
-      // Synchronize playback state strictly when audio begins
-      utterance.onstart = () => {
-        setIsPlaying(true);
-        setIsAudioUnlocked(true);
-        if (onSpeechStart) onSpeechStart();
-      };
-
-      utterance.onend = () => {
-        utteranceRef.current = null;
-        stopAudio();
-      };
-
-      utterance.onerror = (e) => {
-        console.warn("Speech synthesis event error:", e);
-        utteranceRef.current = null;
-        stopAudio();
-      };
-
-      window.speechSynthesis.speak(utterance);
-      window.speechSynthesis.resume();
-    }, 60);
+    window.speechSynthesis.speak(utterance);
   };
 
   // Start audio narration & timer
@@ -215,93 +182,55 @@ export default function SmartGoluHeritageApp() {
     lakshmi: LakshmiStory = currentLakshmi
   ) => {
     playSacredChime();
+    speakLakshmiStory(targetLang, lakshmi);
+    setIsPlaying(true);
+    setPlaybackTime(0);
 
-    speakLakshmiStory(targetLang, lakshmi, () => {
-      setIsPlaying(true);
-      setIsAudioUnlocked(true);
-      setPlaybackTime(0);
-
-      const dur = lakshmi.durationSeconds || 138;
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-      timerIntervalRef.current = setInterval(() => {
-        // Chromium keep-alive prevent freeze
-        if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.speaking) {
-          window.speechSynthesis.resume();
-        }
-        setPlaybackTime((prev) => {
-          if (prev >= dur) {
-            stopAudio();
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    });
-  };
-
-  // User gesture interaction: unlocks browser audio policy and plays immediately
-  const unlockAndPlayAudio = async (
-    targetLang: "ta" | "en" = currentLang,
-    lakshmi: LakshmiStory = currentLakshmi
-  ) => {
-    setIsAudioUnlocked(true);
-    hasAutoplayedRef.current = true;
-
-    // Force resume Web Audio context within user gesture
-    try {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        if (!audioContextRef.current || audioContextRef.current.state === "closed") {
-          audioContextRef.current = new AudioCtx();
-        }
-        if (audioContextRef.current.state === "suspended") {
-          await audioContextRef.current.resume().catch(() => {});
-        }
-      }
-    } catch (e) {
-      console.warn("AudioContext unlock error:", e);
+    const dur = lakshmi.durationSeconds || 138;
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
     }
-
-    startAudioNarration(targetLang, lakshmi);
+    timerIntervalRef.current = setInterval(() => {
+      setPlaybackTime((prev) => {
+        if (prev >= dur) {
+          stopAudio();
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000);
   };
 
-  // 1. Initial page load: detect if browser permits unmuted autoplay or wait for first gesture
+  // 1. Autoplay narration once on initial page load / first visitor gesture
   useEffect(() => {
-    // If the browser already has sticky user activation (e.g. from prior navigation)
-    if (
-      typeof navigator !== "undefined" &&
-      navigator.userActivation &&
-      navigator.userActivation.hasBeenActive
-    ) {
-      unlockAndPlayAudio(currentLang, currentLakshmi);
-      return;
-    }
+    let triggered = false;
 
-    // Otherwise, listen for the very first interaction anywhere on the screen
-    // (tap, click, key) to unlock audio and immediately start narration with sound
-    const handleFirstGesture = () => {
-      unlockAndPlayAudio(currentLang, currentLakshmi);
-      cleanupGestureListeners();
+    const playOnce = () => {
+      if (triggered || hasAutoplayedRef.current) return;
+      triggered = true;
+      hasAutoplayedRef.current = true;
+      startAudioNarration(currentLang, currentLakshmi);
     };
 
-    const cleanupGestureListeners = () => {
-      window.removeEventListener("pointerdown", handleFirstGesture);
-      window.removeEventListener("click", handleFirstGesture);
-      window.removeEventListener("touchstart", handleFirstGesture);
-      window.removeEventListener("keydown", handleFirstGesture);
+    // Direct autoplay attempt after 700ms
+    const timer = setTimeout(() => {
+      playOnce();
+    }, 700);
+
+    // Gesture fallback for browsers enforcing strict user interaction policies
+    const handleFirstTouch = () => {
+      playOnce();
+      window.removeEventListener("click", handleFirstTouch);
+      window.removeEventListener("touchstart", handleFirstTouch);
     };
 
-    window.addEventListener("pointerdown", handleFirstGesture, { passive: true });
-    window.addEventListener("click", handleFirstGesture, { passive: true });
-    window.addEventListener("touchstart", handleFirstGesture, { passive: true });
-    window.addEventListener("keydown", handleFirstGesture, { passive: true });
+    window.addEventListener("click", handleFirstTouch, { once: true });
+    window.addEventListener("touchstart", handleFirstTouch, { once: true });
 
     return () => {
-      cleanupGestureListeners();
+      clearTimeout(timer);
+      window.removeEventListener("click", handleFirstTouch);
+      window.removeEventListener("touchstart", handleFirstTouch);
     };
   }, []);
 
@@ -316,23 +245,19 @@ export default function SmartGoluHeritageApp() {
       prevDollIdRef.current = selectedDollId;
       const nextLakshmi = getLakshmiDataById(selectedDollId);
       stopAudio();
-
-      // Automatically play next deity's narration once audio has been unlocked
-      if (isAudioUnlocked) {
-        const changeTimer = setTimeout(() => {
-          startAudioNarration(currentLang, nextLakshmi);
-        }, 300);
-        return () => clearTimeout(changeTimer);
-      }
+      const changeTimer = setTimeout(() => {
+        startAudioNarration(currentLang, nextLakshmi);
+      }, 400);
+      return () => clearTimeout(changeTimer);
     }
-  }, [selectedDollId, isAudioUnlocked, currentLang]);
+  }, [selectedDollId, currentLang]);
 
   // Main Speaker Play/Pause Handler
   const togglePlayAudio = () => {
     if (isPlaying) {
       stopAudio();
     } else {
-      unlockAndPlayAudio(currentLang, currentLakshmi);
+      startAudioNarration(currentLang, currentLakshmi);
     }
   };
 
@@ -463,23 +388,6 @@ export default function SmartGoluHeritageApp() {
               </p>
             )}
           </div>
-
-          {/* Touch-to-play audio activation helper for browsers restricting unmuted autoplay */}
-          {!isPlaying && !isAudioUnlocked && (
-            <button
-              onClick={() => unlockAndPlayAudio()}
-              className="audio-unlock-helper-pill"
-              aria-label="Tap to start divine audio narration"
-            >
-              <span className="bell-pulse">🔔</span>
-              <span className="helper-text tamil-font">
-                {currentLang === "ta"
-                  ? "குரல் வடிவில் கேட்க இங்கே தொடவும்"
-                  : "Tap to listen to the audio story"}
-              </span>
-              <span className="hand-pulse">👉</span>
-            </button>
-          )}
 
           {/* Audio Player Card with Working Speaker */}
           <div className="audio-player-card">
