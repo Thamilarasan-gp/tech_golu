@@ -21,7 +21,7 @@ export const ASHTA_LAKSHMI_DATA: LakshmiStory[] = [
     name: "Adi Lakshmi",
     tamilName: "ஸ்ரீ ஆதி லட்சுமி",
     subtitle: "Primordial Prosperity & Peace",
-    image: "/images/lakshmi-1.jpg",
+    image: "/images/highres-1.png",
     badges: [
       { icon: "🪙", tamil: "ஆதி செல்வம்", english: "Primordial Wealth" },
       { icon: "🪷", tamil: "மன அமைதி", english: "Inner Peace" },
