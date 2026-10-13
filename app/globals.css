@@ -531,16 +531,17 @@ body {
 
 .footer-tamil-banner {
   font-family: 'Noto Serif Tamil', serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 600;
   color: var(--maroon-primary);
   display: block;
+  opacity: 0.85;
 }
 
 .footer-english-banner {
   font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 0.05em;
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
   display: block;
   margin-top: 1px;
@@ -548,13 +549,22 @@ body {
 
 .footer-team-banner {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--maroon-primary);
   display: block;
   margin-top: 3px;
-  letter-spacing: 0.015em;
-  opacity: 0.9;
+  letter-spacing: 0.02em;
+}
+
+.footer-names-banner {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: #5C3D2E;
+  display: block;
+  margin-top: 1px;
+  letter-spacing: 0.01em;
 }
 
 /* ==========================================================================
@@ -812,15 +822,19 @@ body {
   }
 
   .footer-tamil-banner {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .footer-english-banner {
-    font-size: 10.5px;
+    font-size: 9.5px;
   }
 
   .footer-team-banner {
-    font-size: 11.5px;
+    font-size: 11px;
+  }
+
+  .footer-names-banner {
+    font-size: 10px;
   }
 }
 
