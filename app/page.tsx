@@ -120,7 +120,7 @@ export default function SmartGoluHeritageApp() {
       window.speechSynthesis.cancel();
     }
     if (audioContextRef.current) {
-      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current.close().catch(() => { });
       audioContextRef.current = null;
     }
     if (timerIntervalRef.current) {
@@ -129,6 +129,49 @@ export default function SmartGoluHeritageApp() {
     }
     setIsPlaying(false);
     setPlaybackTime(0);
+  };
+
+  // Play speech narration strictly in chosen language
+  const speakLakshmiStory = (targetLang: "ta" | "en") => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+
+    const textToSpeak =
+      targetLang === "ta"
+        ? `${currentLakshmi.tamilName}. ${currentLakshmi.tamilStory}`
+        : `${currentLakshmi.name}. ${currentLakshmi.englishStory}`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+    const voices = window.speechSynthesis.getVoices();
+    if (targetLang === "ta") {
+      const tamilVoice = voices.find((v) => v.lang.toLowerCase().includes("ta"));
+      if (tamilVoice) {
+        utterance.voice = tamilVoice;
+      }
+      utterance.lang = "ta-IN";
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+    } else {
+      const englishVoice = voices.find(
+        (v) => v.lang.toLowerCase().includes("en-in") || v.lang.toLowerCase().includes("en")
+      );
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      utterance.lang = "en-IN";
+      utterance.rate = 0.95;
+    }
+
+    utterance.onend = () => {
+      stopAudio();
+    };
+
+    utterance.onerror = () => {
+      stopAudio();
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
   // Main Speaker Play/Pause Handler
@@ -141,44 +184,8 @@ export default function SmartGoluHeritageApp() {
     // 1. Play temple sacred chime
     playSacredChime();
 
-    // 2. Play speech narration using Web Speech API
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-
-      const textToSpeak =
-        currentLang === "ta"
-          ? `${currentLakshmi.tamilName}. ${currentLakshmi.tamilStory}`
-          : `${currentLakshmi.name}. ${currentLakshmi.englishStory}`;
-
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-      // Select voice: Tamil (ta-IN) if Tamil selected, otherwise English
-      const voices = window.speechSynthesis.getVoices();
-      if (currentLang === "ta") {
-        const tamilVoice = voices.find((v) => v.lang.startsWith("ta"));
-        if (tamilVoice) {
-          utterance.voice = tamilVoice;
-        }
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-      } else {
-        const englishVoice = voices.find((v) => v.lang.startsWith("en-IN") || v.lang.startsWith("en"));
-        if (englishVoice) {
-          utterance.voice = englishVoice;
-        }
-        utterance.rate = 0.95;
-      }
-
-      utterance.onend = () => {
-        stopAudio();
-      };
-
-      utterance.onerror = () => {
-        stopAudio();
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
+    // 2. Play speech narration strictly in active language toggle
+    speakLakshmiStory(currentLang);
 
     setIsPlaying(true);
 
@@ -192,6 +199,16 @@ export default function SmartGoluHeritageApp() {
         return prev + 1;
       });
     }, 1000);
+  };
+
+  // Language toggle handler: immediately updates story text & voice
+  const handleLangToggle = (newLang: "ta" | "en") => {
+    if (currentLang === newLang) return;
+    setCurrentLang(newLang);
+    if (isPlaying) {
+      playSacredChime();
+      speakLakshmiStory(newLang);
+    }
   };
 
   // Progress bar click to seek
@@ -235,20 +252,16 @@ export default function SmartGoluHeritageApp() {
         {/* Language Switcher */}
         <div className="lang-switcher">
           <button
-            onClick={() => {
-              setCurrentLang("ta");
-              if (isPlaying) stopAudio();
-            }}
+            onClick={() => handleLangToggle("ta")}
             className={`lang-btn ${currentLang === "ta" ? "active" : "inactive"} tamil-font`}
+            aria-label="Switch to Tamil"
           >
             தமிழ்
           </button>
           <button
-            onClick={() => {
-              setCurrentLang("en");
-              if (isPlaying) stopAudio();
-            }}
+            onClick={() => handleLangToggle("en")}
             className={`lang-btn ${currentLang === "en" ? "active" : "inactive"}`}
+            aria-label="Switch to English"
           >
             English
           </button>
@@ -280,10 +293,14 @@ export default function SmartGoluHeritageApp() {
       <div className="deity-name-section">
         <div className="filigree-row">
           <span className="filigree-flourish">꧁</span>
-          <h2 className="deity-tamil-title">{currentLakshmi.tamilName}</h2>
+          <h2 className="deity-tamil-title">
+            {currentLang === "ta" ? currentLakshmi.tamilName : currentLakshmi.name}
+          </h2>
           <span className="filigree-flourish">꧂</span>
         </div>
-        <p className="deity-english-subtitle">{currentLakshmi.name}</p>
+        <p className="deity-english-subtitle">
+          {currentLang === "ta" ? currentLakshmi.name : currentLakshmi.subtitle}
+        </p>
       </div>
 
       {/* Three Golden Attribute Badges */}
@@ -291,29 +308,24 @@ export default function SmartGoluHeritageApp() {
         {currentLakshmi.badges.map((badge, idx) => (
           <div key={idx} className="attr-badge">
             <span className="icon">{badge.icon}</span>
-            <span className="text tamil-font">
+            <span className={`text ${currentLang === "ta" ? "tamil-font" : ""}`}>
               {currentLang === "ta" ? badge.tamil : badge.english}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Traditional Story Scroll Box */}
+      {/* Traditional Story Scroll Box - Single Language Display */}
       <div className="story-scroll-box">
-        {/* Tamil Paragraph */}
-        <p className="story-tamil-text">
-          {currentLakshmi.tamilStory}
-        </p>
-
-        {/* Decorative Golden Divider */}
-        <div className="story-divider">
-          <span>🪷</span>
-        </div>
-
-        {/* English Paragraph */}
-        <p className="story-english-text">
-          {currentLakshmi.englishStory}
-        </p>
+        {currentLang === "ta" ? (
+          <p className="story-tamil-text" key="story-tamil">
+            {currentLakshmi.tamilStory}
+          </p>
+        ) : (
+          <p className="story-english-text" key="story-english">
+            {currentLakshmi.englishStory}
+          </p>
+        )}
       </div>
 
       {/* Audio Player Card with Working Speaker */}
@@ -350,8 +362,12 @@ export default function SmartGoluHeritageApp() {
 
           {/* Player Labels */}
           <div className="player-labels">
-            <span className="listen-tamil-title">கதையைக் கேளுங்கள்</span>
-            <span className="listen-english-sub">Listen to the story</span>
+            <span className="listen-tamil-title">
+              {currentLang === "ta" ? "கதையைக் கேளுங்கள்" : "Listen to the Story"}
+            </span>
+            <span className="listen-english-sub">
+              {currentLang === "ta" ? "தமிழ் குரல் ஒலிபரப்பு" : "Voice Narration"}
+            </span>
           </div>
         </div>
 
