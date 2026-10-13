@@ -26,10 +26,11 @@ body {
   background-color: #EFE4D2;
   color: var(--text-dark);
   min-height: 100vh;
+  margin: 0;
+  padding: 0.75rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0.75rem;
   background-image: 
     radial-gradient(circle at 50% 20%, rgba(201, 151, 56, 0.12) 0%, transparent 70%),
     radial-gradient(circle at 50% 80%, rgba(107, 20, 38, 0.08) 0%, transparent 70%);
@@ -46,7 +47,7 @@ body {
 /* Main Container Frame */
 .temple-container {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   background: var(--bg-parchment);
   border: 3px solid var(--gold-antique);
   border-radius: 36px;
@@ -57,6 +58,19 @@ body {
     inset 0 0 40px rgba(201, 151, 56, 0.12);
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Layout Columns */
+.main-layout-split {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.layout-col-visual,
+.layout-col-content {
+  width: 100%;
 }
 
 /* Background Corner Hanging Deepams */
@@ -503,5 +517,233 @@ body {
   color: var(--text-muted);
   display: block;
   margin-top: 1px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DEVICE DESIGN (Mobile, Tablet, Laptop, Desktop / System)
+   ========================================================================== */
+
+/* 1. Mobile Devices (<= 767px) - Border removed completely for clean app feel */
+@media (max-width: 767px) {
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: var(--bg-parchment) !important;
+    background-image: none !important;
+    display: block !important;
+  }
+
+  .temple-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 1rem 0.95rem 1.75rem !important;
+  }
+
+  .lamp-border-left,
+  .lamp-border-right {
+    display: none !important;
+  }
+
+  .mandapam-arch {
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .footer-heritage {
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* 2. Tablets & Small Laptops (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  body {
+    padding: 1.5rem 1rem;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .temple-container {
+    max-width: 820px;
+    border: 2.5px solid var(--gold-antique);
+    border-radius: 28px;
+    padding: 1.6rem 2rem;
+    box-shadow: 
+      0 20px 50px rgba(78, 12, 26, 0.2),
+      0 4px 16px rgba(201, 151, 56, 0.3);
+  }
+
+  .main-layout-split {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.75rem;
+    align-items: center;
+  }
+
+  .deity-name-section {
+    text-align: left;
+    margin: 0 0 0.65rem;
+  }
+
+  .filigree-row {
+    justify-content: flex-start;
+  }
+
+  .story-scroll-box {
+    margin-bottom: 0.95rem;
+  }
+}
+
+/* 3. Laptops, Desktops & PC Systems (>= 1024px) */
+@media (min-width: 1024px) {
+  body {
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .temple-container {
+    max-width: 1040px;
+    border: 3px solid var(--gold-antique);
+    border-radius: 36px;
+    padding: 2.25rem 2.75rem;
+    box-shadow: 
+      0 25px 60px rgba(78, 12, 26, 0.22),
+      0 6px 24px rgba(201, 151, 56, 0.35),
+      inset 0 0 50px rgba(201, 151, 56, 0.12);
+  }
+
+  .header-bar {
+    margin-bottom: 1.75rem;
+  }
+
+  .lotus-logo {
+    font-size: 30px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .header-title-box h1 {
+    font-size: 26px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+  }
+
+  .lang-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .main-layout-split {
+    display: grid;
+    grid-template-columns: 390px 1fr;
+    gap: 2.75rem;
+    align-items: center;
+  }
+
+  .arch-frame-container {
+    margin-bottom: 0;
+  }
+
+  .mandapam-arch {
+    max-width: 390px;
+    margin: 0 auto;
+    border-radius: 32px 32px 20px 20px;
+    box-shadow: 
+      0 14px 35px rgba(107, 20, 38, 0.25),
+      inset 0 0 0 3px rgba(255, 255, 255, 0.6),
+      0 0 20px rgba(201, 151, 56, 0.45);
+  }
+
+  .deity-name-section {
+    text-align: left;
+    margin: 0 0 0.85rem;
+  }
+
+  .filigree-row {
+    justify-content: flex-start;
+  }
+
+  .deity-tamil-title {
+    font-size: 28px;
+  }
+
+  .deity-english-subtitle {
+    font-size: 16px;
+  }
+
+  .badges-row {
+    gap: 10px;
+    margin-bottom: 1.15rem;
+  }
+
+  .attr-badge {
+    padding: 8px 10px;
+  }
+
+  .attr-badge span.icon {
+    font-size: 15px;
+  }
+
+  .attr-badge span.text {
+    font-size: 13px;
+  }
+
+  .story-scroll-box {
+    padding: 1.35rem 1.4rem;
+    margin-bottom: 1.25rem;
+    border-radius: 20px;
+  }
+
+  .story-tamil-text {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .story-english-text {
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  .audio-player-card {
+    padding: 1.1rem 1.35rem;
+    border-radius: 20px;
+  }
+
+  .play-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .listen-tamil-title {
+    font-size: 15px;
+  }
+
+  .listen-english-sub {
+    font-size: 12px;
+  }
+
+  .footer-heritage {
+    margin-top: 1.75rem;
+    padding-top: 1rem;
+  }
+
+  .footer-tamil-banner {
+    font-size: 13px;
+  }
+
+  .footer-english-banner {
+    font-size: 10.5px;
+  }
 }
 

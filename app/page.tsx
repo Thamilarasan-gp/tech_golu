@@ -268,119 +268,127 @@ export default function SmartGoluHeritageApp() {
         </div>
       </header>
 
-      {/* Temple Mandapam Arch Deity Image */}
-      <div className="arch-frame-container">
-        <div className="mandapam-arch">
-          <Image
-            src={currentLakshmi.image}
-            alt={currentLakshmi.name}
-            width={400}
-            height={420}
-            priority
-          />
+      {/* Responsive Main Layout Split */}
+      <div className="main-layout-split">
+        {/* Left Column: Mandapam Arch Deity Image */}
+        <div className="layout-col-visual">
+          <div className="arch-frame-container">
+            <div className="mandapam-arch">
+              <Image
+                src={currentLakshmi.image}
+                alt={currentLakshmi.name}
+                width={400}
+                height={420}
+                priority
+              />
 
-          {/* IoT Active indicator */}
-          {activeDollId === currentLakshmi.id && (
-            <div className="iot-active-badge">
-              <span className="pulse-led" />
-              <span>GOLU LIT</span>
+              {/* IoT Active indicator */}
+              {activeDollId === currentLakshmi.id && (
+                <div className="iot-active-badge">
+                  <span className="pulse-led" />
+                  <span>GOLU LIT</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Deity Name Section with Traditional Filigree */}
-      <div className="deity-name-section">
-        <div className="filigree-row">
-          <span className="filigree-flourish">꧁</span>
-          <h2 className="deity-tamil-title">
-            {currentLang === "ta" ? currentLakshmi.tamilName : currentLakshmi.name}
-          </h2>
-          <span className="filigree-flourish">꧂</span>
-        </div>
-        <p className="deity-english-subtitle">
-          {currentLang === "ta" ? currentLakshmi.name : currentLakshmi.subtitle}
-        </p>
-      </div>
-
-      {/* Three Golden Attribute Badges */}
-      <div className="badges-row">
-        {currentLakshmi.badges.map((badge, idx) => (
-          <div key={idx} className="attr-badge">
-            <span className="icon">{badge.icon}</span>
-            <span className={`text ${currentLang === "ta" ? "tamil-font" : ""}`}>
-              {currentLang === "ta" ? badge.tamil : badge.english}
-            </span>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Traditional Story Scroll Box - Single Language Display */}
-      <div className="story-scroll-box">
-        {currentLang === "ta" ? (
-          <p className="story-tamil-text" key="story-tamil">
-            {currentLakshmi.tamilStory}
-          </p>
-        ) : (
-          <p className="story-english-text" key="story-english">
-            {currentLakshmi.englishStory}
-          </p>
-        )}
-      </div>
+        {/* Right Column: Deity Details, Story & Audio Player */}
+        <div className="layout-col-content">
+          {/* Deity Name Section with Traditional Filigree */}
+          <div className="deity-name-section">
+            <div className="filigree-row">
+              <span className="filigree-flourish">꧁</span>
+              <h2 className="deity-tamil-title">
+                {currentLang === "ta" ? currentLakshmi.tamilName : currentLakshmi.name}
+              </h2>
+              <span className="filigree-flourish">꧂</span>
+            </div>
+            <p className="deity-english-subtitle">
+              {currentLang === "ta" ? currentLakshmi.name : currentLakshmi.subtitle}
+            </p>
+          </div>
 
-      {/* Audio Player Card with Working Speaker */}
-      <div className="audio-player-card">
-        <div className="player-main-row">
-          {/* Circular Maroon Play/Pause Button */}
-          <button
-            onClick={togglePlayAudio}
-            className={`play-btn ${isPlaying ? "playing" : ""}`}
-            title={isPlaying ? "Pause story narration" : "Listen to story narration"}
-            aria-label="Play or pause story narration"
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5 fill-white text-white" />
+          {/* Three Golden Attribute Badges */}
+          <div className="badges-row">
+            {currentLakshmi.badges.map((badge, idx) => (
+              <div key={idx} className="attr-badge">
+                <span className="icon">{badge.icon}</span>
+                <span className={`text ${currentLang === "ta" ? "tamil-font" : ""}`}>
+                  {currentLang === "ta" ? badge.tamil : badge.english}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Traditional Story Scroll Box - Single Language Display */}
+          <div className="story-scroll-box">
+            {currentLang === "ta" ? (
+              <p className="story-tamil-text" key="story-tamil">
+                {currentLakshmi.tamilStory}
+              </p>
             ) : (
-              <Play className="w-5 h-5 fill-white text-white ml-0.5" />
+              <p className="story-english-text" key="story-english">
+                {currentLakshmi.englishStory}
+              </p>
             )}
-          </button>
+          </div>
 
-          {/* Animated Waveform Visualizer */}
-          <div className={`waveform-container ${isPlaying ? "active" : ""}`}>
-            {[6, 12, 18, 14, 24, 16, 22, 12, 26, 18, 14, 22, 16, 20, 10, 18, 24, 14, 8].map(
-              (h, i) => (
+          {/* Audio Player Card with Working Speaker */}
+          <div className="audio-player-card">
+            <div className="player-main-row">
+              {/* Circular Maroon Play/Pause Button */}
+              <button
+                onClick={togglePlayAudio}
+                className={`play-btn ${isPlaying ? "playing" : ""}`}
+                title={isPlaying ? "Pause story narration" : "Listen to story narration"}
+                aria-label="Play or pause story narration"
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 fill-white text-white" />
+                ) : (
+                  <Play className="w-5 h-5 fill-white text-white ml-0.5" />
+                )}
+              </button>
+
+              {/* Animated Waveform Visualizer */}
+              <div className={`waveform-container ${isPlaying ? "active" : ""}`}>
+                {[6, 12, 18, 14, 24, 16, 22, 12, 26, 18, 14, 22, 16, 20, 10, 18, 24, 14, 8].map(
+                  (h, i) => (
+                    <div
+                      key={i}
+                      className="wave-bar"
+                      style={{
+                        height: isPlaying ? undefined : `${h * 0.4}px`
+                      }}
+                    />
+                  )
+                )}
+              </div>
+
+              {/* Player Labels */}
+              <div className="player-labels">
+                <span className="listen-tamil-title">
+                  {currentLang === "ta" ? "கதையைக் கேளுங்கள்" : "Listen to the Story"}
+                </span>
+                <span className="listen-english-sub">
+                  {currentLang === "ta" ? "தமிழ் குரல் ஒலிபரப்பு" : "Voice Narration"}
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive Progress Bar & Timestamps */}
+            <div className="progress-row">
+              <span>{formatTime(playbackTime)}</span>
+              <div className="progress-track" onClick={handleSeek}>
                 <div
-                  key={i}
-                  className="wave-bar"
-                  style={{
-                    height: isPlaying ? undefined : `${h * 0.4}px`
-                  }}
+                  className="progress-fill"
+                  style={{ width: `${(playbackTime / totalDuration) * 100}%` }}
                 />
-              )
-            )}
+              </div>
+              <span>{formatTime(totalDuration)}</span>
+            </div>
           </div>
-
-          {/* Player Labels */}
-          <div className="player-labels">
-            <span className="listen-tamil-title">
-              {currentLang === "ta" ? "கதையைக் கேளுங்கள்" : "Listen to the Story"}
-            </span>
-            <span className="listen-english-sub">
-              {currentLang === "ta" ? "தமிழ் குரல் ஒலிபரப்பு" : "Voice Narration"}
-            </span>
-          </div>
-        </div>
-
-        {/* Interactive Progress Bar & Timestamps */}
-        <div className="progress-row">
-          <span>{formatTime(playbackTime)}</span>
-          <div className="progress-track" onClick={handleSeek}>
-            <div
-              className="progress-fill"
-              style={{ width: `${(playbackTime / totalDuration) * 100}%` }}
-            />
-          </div>
-          <span>{formatTime(totalDuration)}</span>
         </div>
       </div>
 
