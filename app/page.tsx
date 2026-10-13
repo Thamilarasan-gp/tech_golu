@@ -3,37 +3,28 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { getBrowserSupabase } from "@/lib/supabase";
-import { ASHTA_LAKSHMI_STORIES, getLakshmiById, LakshmiStory } from "@/lib/ashtaLakshmi";
-import { Radio, Volume2, VolumeX, Sparkles, BookOpen, ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ASHTA_LAKSHMI_DATA, getLakshmiDataById, LakshmiStory } from "@/lib/ashtaLakshmi";
+import { Play, Pause, Sparkles } from "lucide-react";
 
-export default function AshtaLakshmiExperience() {
-  const [activeId, setActiveId] = useState<number>(1);
-  const [selectedId, setSelectedId] = useState<number>(1);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
-  const [currentTime, setCurrentTime] = useState<string>("9:41");
+export default function SmartGoluHeritageApp() {
+  const [activeDollId, setActiveDollId] = useState<number>(2); // Default to Dhana Lakshmi / Maha Lakshmi
+  const [selectedDollId, setSelectedDollId] = useState<number>(2);
+  const [currentLang, setCurrentLang] = useState<"ta" | "en">("ta");
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playbackTime, setPlaybackTime] = useState<number>(0);
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
+
   const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorNodesRef = useRef<OscillatorNode[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update clock
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true }).replace(" ", "")
-      );
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 30000);
-    return () => clearInterval(timer);
-  }, []);
+  const currentLakshmi: LakshmiStory = getLakshmiDataById(selectedDollId);
+  const totalDuration = currentLakshmi.durationSeconds || 138;
 
-  // 1. Initial fetch from Supabase
+  // 1. Supabase Realtime synchronization
   useEffect(() => {
     const supabase = getBrowserSupabase();
 
-    async function fetchCurrentState() {
+    async function fetchLiveState() {
       try {
         const { data, error } = await supabase
           .from("golu_state")
@@ -44,20 +35,19 @@ export default function AshtaLakshmiExperience() {
         if (!error && data?.doll_id) {
           const id = Number(data.doll_id);
           if (id >= 1 && id <= 8) {
-            setActiveId(id);
-            setSelectedId(id);
+            setActiveDollId(id);
+            setSelectedDollId(id);
           }
         }
       } catch (err) {
-        console.warn("Could not fetch state:", err);
+        console.warn("Error fetching Supabase state:", err);
       }
     }
 
-    fetchCurrentState();
+    fetchLiveState();
 
-    // 2. Realtime WebSocket subscription
     const channel = supabase
-      .channel("golu-live-ashta-lakshmi")
+      .channel("smart-golu-heritage-stream")
       .on(
         "postgres_changes",
         {
@@ -68,226 +58,364 @@ export default function AshtaLakshmiExperience() {
         },
         (payload) => {
           if (payload.new && "doll_id" in payload.new) {
-            const newDollId = Number(payload.new.doll_id);
-            if (newDollId >= 1 && newDollId <= 8) {
-              setActiveId(newDollId);
-              // Automatically switch the story screen to the lit doll
-              setSelectedId(newDollId);
+            const newId = Number(payload.new.doll_id);
+            if (newId >= 1 && newId <= 8) {
+              setActiveDollId(newId);
+              setSelectedDollId(newId);
+              // Stop previous speech if switching dolls
+              stopAudio();
             }
           }
         }
       )
       .subscribe((status) => {
-        setIsConnected(status === "SUBSCRIBED");
+        setIsLiveConnected(status === "SUBSCRIBED");
       });
 
     return () => {
       supabase.removeChannel(channel);
+      stopAudio();
     };
   }, []);
 
-  const currentDoll: LakshmiStory = getLakshmiById(selectedId);
+  // Format seconds into MM:SS
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
 
-  // Synthesize soft ambient temple tanpura drone & bell harmonics
-  const toggleBGM = () => {
-    if (isPlayingAudio) {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
-      setIsPlayingAudio(false);
-      return;
-    }
-
+  // Sound generator for pleasant temple bell & tanpura ambient chime
+  const playSacredChime = () => {
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new AudioCtx();
       audioContextRef.current = ctx;
 
-      // Sacred Tanpura chord frequencies (Sa - Pa - Sa root notes: C3 130.81Hz, G3 196Hz, C4 261.63Hz)
-      const freqs = [130.81, 196.0, 261.63, 523.25];
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.08, ctx.currentTime);
-      masterGain.connect(ctx.destination);
-
-      freqs.forEach((freq) => {
+      // Temple bell harmonic frequencies (G4, D5, G5)
+      [392.0, 587.33, 783.99].forEach((freq, index) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-        // Gentle breathing pulsation
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(masterGain);
-        osc.start();
-        oscillatorNodesRef.current.push(osc);
-      });
+        const startTime = ctx.currentTime + index * 0.08;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.12, startTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 2.5);
 
-      setIsPlayingAudio(true);
-    } catch {
-      setIsPlayingAudio(false);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 2.6);
+      });
+    } catch (e) {
+      console.warn("Audio Context chime:", e);
     }
   };
 
-  const handlePrev = () => {
-    setSelectedId((prev) => (prev === 1 ? 8 : prev - 1));
+  // Stop audio and speech synthesis
+  const stopAudio = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setIsPlaying(false);
+    setPlaybackTime(0);
   };
 
-  const handleNext = () => {
-    setSelectedId((prev) => (prev === 8 ? 1 : prev + 1));
+  // Main Speaker Play/Pause Handler
+  const togglePlayAudio = () => {
+    if (isPlaying) {
+      stopAudio();
+      return;
+    }
+
+    // 1. Play temple sacred chime
+    playSacredChime();
+
+    // 2. Play speech narration using Web Speech API
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+
+      const textToSpeak =
+        currentLang === "ta"
+          ? `${currentLakshmi.tamilName}. ${currentLakshmi.tamilStory}`
+          : `${currentLakshmi.name}. ${currentLakshmi.englishStory}`;
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+      // Select voice: Tamil (ta-IN) if Tamil selected, otherwise English
+      const voices = window.speechSynthesis.getVoices();
+      if (currentLang === "ta") {
+        const tamilVoice = voices.find((v) => v.lang.startsWith("ta"));
+        if (tamilVoice) {
+          utterance.voice = tamilVoice;
+        }
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+      } else {
+        const englishVoice = voices.find((v) => v.lang.startsWith("en-IN") || v.lang.startsWith("en"));
+        if (englishVoice) {
+          utterance.voice = englishVoice;
+        }
+        utterance.rate = 0.95;
+      }
+
+      utterance.onend = () => {
+        stopAudio();
+      };
+
+      utterance.onerror = () => {
+        stopAudio();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    setIsPlaying(true);
+
+    // Track elapsed time
+    timerIntervalRef.current = setInterval(() => {
+      setPlaybackTime((prev) => {
+        if (prev >= totalDuration) {
+          stopAudio();
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+  };
+
+  // Progress bar click to seek
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const newProgress = Math.max(0, Math.min(1, clickX / rect.width));
+    setPlaybackTime(Math.round(newProgress * totalDuration));
   };
 
   return (
-    <div className="phone-frame">
-      {/* Top Status Bar */}
-      <header className="status-bar">
-        <div className="status-left flex items-center gap-2">
-          <span>{currentTime}</span>
-        </div>
+    <div className="temple-container">
+      {/* Decorative Hanging Brass Lamps on borders */}
+      <svg className="lamp-border-left" viewBox="0 0 32 160" fill="none">
+        <line x1="16" y1="0" x2="16" y2="90" stroke="#C99738" strokeWidth="1.5" strokeDasharray="3 3" />
+        <circle cx="16" cy="95" r="7" fill="#C99738" />
+        <path d="M8 102 C8 120 24 120 24 102 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="1" />
+        <circle cx="16" cy="115" r="4.5" fill="#E26D39" />
+        <line x1="16" y1="120" x2="16" y2="155" stroke="#C99738" strokeWidth="1.5" />
+      </svg>
+      <svg className="lamp-border-right" viewBox="0 0 32 160" fill="none">
+        <line x1="16" y1="0" x2="16" y2="90" stroke="#C99738" strokeWidth="1.5" strokeDasharray="3 3" />
+        <circle cx="16" cy="95" r="7" fill="#C99738" />
+        <path d="M8 102 C8 120 24 120 24 102 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="1" />
+        <circle cx="16" cy="115" r="4.5" fill="#E26D39" />
+        <line x1="16" y1="120" x2="16" y2="155" stroke="#C99738" strokeWidth="1.5" />
+      </svg>
 
-        <div className="flex items-center gap-1.5">
-          <span className="lotus-header-icon" title="Navarathri Divine Presence">🪷</span>
-          <div className="live-pill" title={isConnected ? "Hardware Feed Connected" : "Connecting..."}>
-            <span className={`live-dot ${!isConnected ? "opacity-50" : ""}`} />
-            <span>{isConnected ? "Live IoT" : "Syncing"}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-bold text-[#D4AF37]">
-            #{currentDoll.id}
-          </span>
-          <Menu className="w-3.5 h-3.5 opacity-80" />
-        </div>
-      </header>
-
-      {/* Main Image Showcase */}
-      <div className="image-container">
-        <Image
-          src={currentDoll.image}
-          alt={currentDoll.name}
-          width={400}
-          height={520}
-          className="lakshmi-image"
-          priority
-        />
-        {/* Hardware Lit Badge */}
-        {activeId === currentDoll.id && (
-          <div className="absolute top-3 left-3 bg-[#D4AF37] text-[#0A0F0D] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-[#0A0F0D]" />
-            <span>Lit On Golu</span>
-          </div>
-        )}
-      </div>
-
-      {/* Title & Tamil Identity */}
-      <section className="title-section">
-        <h1 className="lakshmi-english-title">{currentDoll.name}</h1>
-        <h2 className="lakshmi-tamil-title tamil-text">{currentDoll.tamilName}</h2>
-        <div className="gold-divider">
-          <span>🪷</span>
-        </div>
-      </section>
-
-      {/* Dual Language Story Cards */}
-      <section className="bilingual-grid">
-        {/* English Story Card */}
-        <article className="lang-card">
-          <span className="lang-badge">English</span>
-          <p className="lang-text">{currentDoll.englishSummary}</p>
-        </article>
-
-        {/* Tamil Story Card */}
-        <article className="lang-card">
-          <span className="lang-badge">தமிழ்</span>
-          <p className="lang-text tamil-text">{currentDoll.tamilSummary}</p>
-        </article>
-      </section>
-
-      {/* Actions: BGM & Audio */}
-      <div className="actions-bar">
-        <button
-          onClick={handlePrev}
-          className="p-1 text-[#D4AF37] hover:text-white transition-colors"
-          title="Previous Lakshmi"
-          aria-label="Previous Lakshmi"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={toggleBGM}
-          className={`bgm-button ${isPlayingAudio ? "active" : ""}`}
-          aria-label="Toggle Temple Ambient BGM"
-        >
-          {isPlayingAudio ? (
-            <>
-              <VolumeX className="w-3.5 h-3.5" />
-              <span>BGM OFF</span>
-            </>
-          ) : (
-            <>
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>🎵 BGM ON</span>
-            </>
-          )}
-        </button>
-
-        <button
-          onClick={handleNext}
-          className="p-1 text-[#D4AF37] hover:text-white transition-colors"
-          title="Next Lakshmi"
-          aria-label="Next Lakshmi"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Expandable Cultural Lore & Sloka */}
-      <button
-        onClick={() => setShowDetails(!showDetails)}
-        className="details-toggle"
-      >
-        {showDetails ? "▲ Hide Deep Story & Sloka" : "▼ Read Cultural Story & Sloka"}
-      </button>
-
-      {showDetails && (
-        <div className="details-card">
-          <p className="mb-2 leading-relaxed">{currentDoll.detailedStory}</p>
-          <p className="tamil-text leading-relaxed text-[#E5E7EB] opacity-90">{currentDoll.tamilDetailed}</p>
-          <div className="sloka-box">
-            <p>"{currentDoll.sloka}"</p>
-            <p className="text-[9.5px] text-[#D1D5DB] font-sans mt-0.5 opacity-80 font-normal">
-              — {currentDoll.slokaMeaning}
+      {/* Top Header Bar */}
+      <header className="header-bar">
+        <div className="header-left">
+          <div className="lotus-logo">🪷</div>
+          <div className="header-title-box">
+            <h1>SMART GOLU</h1>
+            <p className="header-subtitle tamil-font">
+              தமிழ் மரபின் அழகிய கதைகள் • Stories of our heritage
             </p>
           </div>
         </div>
-      )}
 
-      {/* 8-Doll Rapid Selector Strip */}
-      <div className="doll-strip" title="Select or preview any Lakshmi form">
-        {ASHTA_LAKSHMI_STORIES.map((item) => (
+        {/* Language Switcher */}
+        <div className="lang-switcher">
           <button
-            key={item.id}
-            onClick={() => setSelectedId(item.id)}
-            className={`strip-item ${selectedId === item.id ? "active" : ""} ${
-              activeId === item.id ? "ring-2 ring-emerald-400" : ""
-            }`}
-            title={`${item.id}: ${item.name} (${item.tamilName}) ${
-              activeId === item.id ? "• Physically Lit Now" : ""
-            }`}
+            onClick={() => {
+              setCurrentLang("ta");
+              if (isPlaying) stopAudio();
+            }}
+            className={`lang-btn ${currentLang === "ta" ? "active" : "inactive"} tamil-font`}
           >
-            {item.id}
+            தமிழ்
           </button>
+          <button
+            onClick={() => {
+              setCurrentLang("en");
+              if (isPlaying) stopAudio();
+            }}
+            className={`lang-btn ${currentLang === "en" ? "active" : "inactive"}`}
+          >
+            English
+          </button>
+        </div>
+      </header>
+
+      {/* Temple Mandapam Arch Deity Image */}
+      <div className="arch-frame-container">
+        <div className="mandapam-arch">
+          <Image
+            src={currentLakshmi.image}
+            alt={currentLakshmi.name}
+            width={400}
+            height={420}
+            priority
+          />
+
+          {/* IoT Active indicator */}
+          {activeDollId === currentLakshmi.id && (
+            <div className="iot-active-badge">
+              <span className="pulse-led" />
+              <span>GOLU LIT</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Deity Name Section with Traditional Filigree */}
+      <div className="deity-name-section">
+        <div className="filigree-row">
+          <span className="filigree-flourish">꧁</span>
+          <h2 className="deity-tamil-title">{currentLakshmi.tamilName}</h2>
+          <span className="filigree-flourish">꧂</span>
+        </div>
+        <p className="deity-english-subtitle">{currentLakshmi.name}</p>
+      </div>
+
+      {/* Three Golden Attribute Badges */}
+      <div className="badges-row">
+        {currentLakshmi.badges.map((badge, idx) => (
+          <div key={idx} className="attr-badge">
+            <span className="icon">{badge.icon}</span>
+            <span className="text tamil-font">
+              {currentLang === "ta" ? badge.tamil : badge.english}
+            </span>
+          </div>
         ))}
       </div>
 
-      {/* Footer Tag */}
-      <footer className="footer-tag">
-        <span className="footer-lotus">🪷</span>
-        <span>Navarathri Tales</span>
+      {/* Traditional Story Scroll Box */}
+      <div className="story-scroll-box">
+        {/* Tamil Paragraph */}
+        <p className="story-tamil-text">
+          {currentLakshmi.tamilStory}
+        </p>
+
+        {/* Decorative Golden Divider */}
+        <div className="story-divider">
+          <span>🪷</span>
+        </div>
+
+        {/* English Paragraph */}
+        <p className="story-english-text">
+          {currentLakshmi.englishStory}
+        </p>
+      </div>
+
+      {/* Audio Player Card with Working Speaker */}
+      <div className="audio-player-card">
+        <div className="player-main-row">
+          {/* Circular Maroon Play/Pause Button */}
+          <button
+            onClick={togglePlayAudio}
+            className={`play-btn ${isPlaying ? "playing" : ""}`}
+            title={isPlaying ? "Pause story narration" : "Listen to story narration"}
+            aria-label="Play or pause story narration"
+          >
+            {isPlaying ? (
+              <Pause className="w-5 h-5 fill-white text-white" />
+            ) : (
+              <Play className="w-5 h-5 fill-white text-white ml-0.5" />
+            )}
+          </button>
+
+          {/* Animated Waveform Visualizer */}
+          <div className={`waveform-container ${isPlaying ? "active" : ""}`}>
+            {[6, 12, 18, 14, 24, 16, 22, 12, 26, 18, 14, 22, 16, 20, 10, 18, 24, 14, 8].map(
+              (h, i) => (
+                <div
+                  key={i}
+                  className="wave-bar"
+                  style={{
+                    height: isPlaying ? undefined : `${h * 0.4}px`
+                  }}
+                />
+              )
+            )}
+          </div>
+
+          {/* Player Labels */}
+          <div className="player-labels">
+            <span className="listen-tamil-title">கதையைக் கேளுங்கள்</span>
+            <span className="listen-english-sub">Listen to the story</span>
+          </div>
+        </div>
+
+        {/* Interactive Progress Bar & Timestamps */}
+        <div className="progress-row">
+          <span>{formatTime(playbackTime)}</span>
+          <div className="progress-track" onClick={handleSeek}>
+            <div
+              className="progress-fill"
+              style={{ width: `${(playbackTime / totalDuration) * 100}%` }}
+            />
+          </div>
+          <span>{formatTime(totalDuration)}</span>
+        </div>
+      </div>
+
+      {/* Bottom Heritage Footer with Gopuram Temple Towers */}
+      <footer className="footer-heritage">
+        {/* Left Temple Gopuram SVG */}
+        <svg className="gopuram-icon" viewBox="0 0 40 50" fill="none">
+          <path d="M20 2 L23 8 L17 8 Z" fill="#C99738" />
+          <path d="M14 8 H26 L28 16 H12 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <path d="M10 16 H30 L32 26 H8 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <path d="M6 26 H34 L36 38 H4 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <rect x="2" y="38" width="36" height="10" fill="#C99738" />
+          <circle cx="20" cy="43" r="3" fill="#6B1426" />
+        </svg>
+
+        <div className="footer-center-text">
+          <span className="footer-tamil-banner">
+            நவராத்திரி கொலு • தமிழர் பண்பாட்டின் பெருமை
+          </span>
+          <span className="footer-english-banner">
+            NAVARATRI GOLU • PRIDE OF TAMIL HERITAGE
+          </span>
+        </div>
+
+        {/* Right Temple Gopuram SVG */}
+        <svg className="gopuram-icon" viewBox="0 0 40 50" fill="none">
+          <path d="M20 2 L23 8 L17 8 Z" fill="#C99738" />
+          <path d="M14 8 H26 L28 16 H12 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <path d="M10 16 H30 L32 26 H8 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <path d="M6 26 H34 L36 38 H4 Z" fill="#DDB058" stroke="#8C6A0A" strokeWidth="0.8" />
+          <rect x="2" y="38" width="36" height="10" fill="#C99738" />
+          <circle cx="20" cy="43" r="3" fill="#6B1426" />
+        </svg>
       </footer>
+
+      {/* 8-Doll Rapid Selector Strip */}
+      <nav className="selector-strip" aria-label="Ashta Lakshmi Selector">
+        {ASHTA_LAKSHMI_DATA.map((doll) => (
+          <button
+            key={doll.id}
+            onClick={() => {
+              setSelectedDollId(doll.id);
+              stopAudio();
+            }}
+            className={`doll-pill ${selectedDollId === doll.id ? "active" : ""}`}
+            title={`${doll.id}. ${doll.name} (${doll.tamilName})`}
+          >
+            {doll.id}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Serif+Tamil:wght@500;600;700;800&family=Rozha+One&display=swap');
 
 * {
   box-sizing: border-box;
@@ -7,351 +7,525 @@
 }
 
 :root {
-  --bg-dark: #0A0F0D;
-  --bg-card: #121A16;
-  --bg-card-border: rgba(212, 175, 55, 0.25);
-  --gold-primary: #D4AF37;
-  --gold-light: #F7D779;
-  --gold-dark: #8C6A0A;
-  --gold-badge: #C5A059;
-  --text-main: #FFFFFF;
-  --text-sub: #D1D5DB;
-  --text-muted: #9CA3AF;
-  --green-glow: #10B981;
+  --bg-parchment: #F7EFE1;
+  --bg-silk: #FAF4E8;
+  --bg-card: #FDF9F0;
+  --maroon-primary: #6B1426;
+  --maroon-deep: #4E0C1A;
+  --gold-primary: #C99738;
+  --gold-antique: #DDB058;
+  --gold-light: #FCE8B3;
+  --gold-border: rgba(184, 134, 39, 0.45);
+  --text-dark: #2A170F;
+  --text-tamil: #331A12;
+  --text-muted: #6E584D;
 }
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+  background-color: #EFE4D2;
+  color: var(--text-dark);
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 0.75rem;
   background-image: 
-    radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
-    radial-gradient(circle at 50% 85%, rgba(10, 40, 25, 0.25) 0%, transparent 60%);
+    radial-gradient(circle at 50% 20%, rgba(201, 151, 56, 0.12) 0%, transparent 70%),
+    radial-gradient(circle at 50% 80%, rgba(107, 20, 38, 0.08) 0%, transparent 70%);
 }
 
-.tamil-text {
+.tamil-font {
   font-family: 'Noto Serif Tamil', 'Plus Jakarta Sans', serif;
 }
 
-/* Phone Mockup Frame */
-.phone-frame {
+.serif-title {
+  font-family: 'Cinzel', 'Rozha One', serif;
+}
+
+/* Main Container Frame */
+.temple-container {
   width: 100%;
   max-width: 440px;
-  background: #0B110E;
-  border: 2px solid rgba(212, 175, 55, 0.35);
-  border-radius: 42px;
-  padding: 1.25rem 1.25rem 1.75rem;
+  background: var(--bg-parchment);
+  border: 3px solid var(--gold-antique);
+  border-radius: 36px;
+  padding: 1.25rem 1.15rem 1.5rem;
   box-shadow: 
-    0 25px 60px rgba(0, 0, 0, 0.8),
-    0 0 35px rgba(212, 175, 55, 0.15),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 20px 50px rgba(78, 12, 26, 0.25),
+    0 4px 16px rgba(201, 151, 56, 0.3),
+    inset 0 0 40px rgba(201, 151, 56, 0.12);
   position: relative;
   overflow: hidden;
 }
 
-/* Top Status Bar */
-.status-bar {
+/* Background Corner Hanging Deepams */
+.lamp-border-left, .lamp-border-right {
+  position: absolute;
+  top: 10px;
+  width: 32px;
+  height: 180px;
+  pointer-events: none;
+  opacity: 0.65;
+  z-index: 0;
+}
+.lamp-border-left { left: 4px; }
+.lamp-border-right { right: 4px; }
+
+/* Top Header Bar */
+.header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.25rem 0.5rem 0.75rem;
-  font-size: 11px;
-  color: #E5E7EB;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-  margin-bottom: 1rem;
+  gap: 8px;
+  margin-bottom: 0.9rem;
+  position: relative;
+  z-index: 10;
 }
 
-.status-left {
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.lotus-header-icon {
-  font-size: 16px;
-  color: var(--gold-light);
-  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.5));
-}
-
-.live-pill {
-  display: inline-flex;
+.header-left {
+  display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 9px;
+}
+
+.lotus-logo {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(201, 151, 56, 0.5));
+}
+
+.header-title-box h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--maroon-primary);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.header-subtitle {
   font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 8px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+}
+
+/* Language Switcher */
+.lang-switcher {
+  display: inline-flex;
+  background: #EFE4D0;
+  padding: 2.5px;
   border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid var(--gold-border);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10B981;
-  box-shadow: 0 0 8px #10B981;
-  animation: pulse-dot 1.8s infinite;
+.lang-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+.lang-btn.active {
+  background: var(--maroon-primary);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(107, 20, 38, 0.35);
 }
 
-/* Image Showcase */
-.image-container {
+.lang-btn.inactive {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Deity Temple Arch Frame */
+.arch-frame-container {
   width: 100%;
-  aspect-ratio: 9 / 12;
-  border-radius: 24px;
+  position: relative;
+  z-index: 5;
+  margin-bottom: 0.75rem;
+}
+
+.mandapam-arch {
+  width: 100%;
+  aspect-ratio: 1 / 1.05;
+  border-radius: 28px 28px 18px 18px;
+  border: 3.5px solid var(--gold-primary);
+  box-shadow: 
+    0 10px 25px rgba(107, 20, 38, 0.2),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.6),
+    0 0 16px rgba(201, 151, 56, 0.4);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
-  border: 1.5px solid rgba(212, 175, 55, 0.35);
-  background: #000000;
+  background: #000;
 }
 
-.lakshmi-image {
+.mandapam-arch img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s ease;
 }
 
-.lakshmi-image:hover {
-  transform: scale(1.02);
-}
-
-/* Title Section */
-.title-section {
-  text-align: center;
-  margin: 1.1rem 0 0.9rem;
-}
-
-.lakshmi-english-title {
-  font-family: 'Cinzel', serif;
-  font-size: 24px;
+/* Hardware Active Pill */
+.iot-active-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(107, 20, 38, 0.92);
+  color: #FCE8B3;
+  border: 1px solid var(--gold-antique);
+  font-size: 10px;
   font-weight: 700;
-  color: var(--gold-light);
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+  padding: 3px 9px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
 }
 
-.lakshmi-tamil-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #E6C575;
-  margin-top: 3px;
-  letter-spacing: 0.02em;
+.pulse-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22C55E;
+  box-shadow: 0 0 8px #22C55E;
+  animation: led-blink 1.5s infinite;
 }
 
-.gold-divider {
+@keyframes led-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+/* Deity Title & Filigree */
+.deity-name-section {
+  text-align: center;
+  margin: 0.6rem 0 0.75rem;
+}
+
+.filigree-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 8px auto;
+}
+
+.filigree-flourish {
   color: var(--gold-primary);
-  font-size: 11px;
+  font-size: 16px;
   opacity: 0.85;
 }
 
-.gold-divider::before,
-.gold-divider::after {
+.deity-tamil-title {
+  font-family: 'Noto Serif Tamil', serif;
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--maroon-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.deity-english-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4A2E1B;
+  letter-spacing: 0.03em;
+  margin-top: 3px;
+}
+
+/* 3 Golden Badges */
+.badges-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 0.85rem;
+}
+
+.attr-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #FBEBC2 0%, #F5D38A 100%);
+  border: 1px solid rgba(184, 134, 39, 0.4);
+  padding: 6px 4px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 5px rgba(184, 134, 39, 0.15);
+}
+
+.attr-badge span.icon {
+  font-size: 13px;
+}
+
+.attr-badge span.text {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #4E120A;
+}
+
+/* Scroll Story Box */
+.story-scroll-box {
+  background: var(--bg-card);
+  border: 2px solid var(--gold-border);
+  border-radius: 18px;
+  padding: 1rem 0.95rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 
+    0 4px 14px rgba(78, 12, 26, 0.06),
+    inset 0 0 16px rgba(201, 151, 56, 0.08);
+  position: relative;
+}
+
+.story-tamil-text {
+  font-family: 'Noto Serif Tamil', serif;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #2D1A12;
+  text-align: justify;
+  margin-bottom: 0.75rem;
+}
+
+.story-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0.5rem 0 0.75rem;
+  color: var(--gold-primary);
+  font-size: 11px;
+}
+
+.story-divider::before, .story-divider::after {
   content: "";
   display: inline-block;
-  width: 32px;
+  width: 40px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
 }
 
-/* Bilingual Cards Container */
-.bilingual-grid {
-  display: grid;
-  grid-cols: 2;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 1rem;
+.story-english-text {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #4A3326;
+  text-align: justify;
 }
 
-.lang-card {
-  background: #111915;
-  border: 1px solid rgba(212, 175, 55, 0.22);
-  border-radius: 14px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  min-height: 110px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.lang-badge {
-  align-self: flex-start;
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  color: #111827;
-  background: #D4AF37;
-  padding: 2px 7px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.lang-text {
-  font-size: 11px;
-  line-height: 1.45;
-  color: #E5E7EB;
-  text-align: left;
-}
-
-/* Actions Bar */
-.actions-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+/* Audio Player Container */
+.audio-player-card {
+  background: linear-gradient(135deg, #FDF7EA 0%, #F8ECD2 100%);
+  border: 2px solid var(--gold-antique);
+  border-radius: 18px;
+  padding: 0.75rem 0.9rem;
+  box-shadow: 
+    0 5px 15px rgba(78, 12, 26, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
   margin-bottom: 0.85rem;
 }
 
-.bgm-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: #16221D;
-  color: var(--gold-light);
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 7px 16px;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.04em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.bgm-button:hover {
-  background: #1F3029;
-  border-color: var(--gold-light);
-  transform: translateY(-1px);
-}
-
-.bgm-button.active {
-  background: var(--gold-primary);
-  color: #0A0F0D;
-  border-color: var(--gold-light);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
-}
-
-/* Footer Tag */
-.footer-tag {
-  text-align: center;
-  color: #9CA3AF;
-  font-size: 11px;
+.player-main-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 0.5rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  gap: 10px;
 }
 
-.footer-lotus {
-  color: var(--gold-primary);
-  font-size: 12px;
-}
-
-/* 8-Doll Mini Strip */
-.doll-strip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 0.85rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(212, 175, 55, 0.15);
-  overflow-x: auto;
-}
-
-.strip-item {
-  width: 32px;
-  height: 32px;
+/* Circular Maroon Play/Pause Button */
+.play-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 1.5px solid rgba(212, 175, 55, 0.3);
-  background: #121A16;
-  color: #E5E7EB;
-  font-size: 11px;
-  font-weight: 700;
+  background: radial-gradient(circle at 35% 35%, #8B1B32 0%, var(--maroon-primary) 70%, var(--maroon-deep) 100%);
+  border: 2px solid #FFFFFF;
+  box-shadow: 
+    0 4px 10px rgba(107, 20, 38, 0.45),
+    0 0 0 2px var(--gold-primary);
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.2s ease;
+}
+
+.play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(107, 20, 38, 0.6);
+}
+
+.play-btn.playing {
+  animation: play-pulse 2s infinite ease-in-out;
+}
+
+@keyframes play-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--gold-primary), 0 4px 10px rgba(107, 20, 38, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(201, 151, 56, 0.5), 0 4px 15px rgba(107, 20, 38, 0.6); }
+}
+
+/* Audio Waveform Bars */
+.waveform-container {
+  display: flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 28px;
+  flex: 1;
+}
+
+.wave-bar {
+  width: 3px;
+  border-radius: 3px;
+  background: var(--gold-primary);
+  transition: height 0.15s ease;
+}
+
+.waveform-container.active .wave-bar {
+  animation: wave-bounce 0.8s infinite ease-in-out alternate;
+}
+
+.wave-bar:nth-child(2n) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3n) { animation-delay: 0.25s; }
+.wave-bar:nth-child(4n) { animation-delay: 0.4s; }
+.wave-bar:nth-child(5n) { animation-delay: 0.55s; }
+
+@keyframes wave-bounce {
+  0% { height: 6px; }
+  100% { height: 26px; }
+}
+
+/* Audio Player Right Labels */
+.player-labels {
+  text-align: right;
   flex-shrink: 0;
 }
 
-.strip-item:hover {
-  border-color: var(--gold-light);
-  color: var(--gold-light);
-}
-
-.strip-item.active {
-  border-color: var(--gold-light);
-  background: var(--gold-primary);
-  color: #0A0F0D;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
-  transform: scale(1.1);
-}
-
-/* Detailed Modal/Drawer */
-.details-toggle {
+.listen-tamil-title {
+  font-family: 'Noto Serif Tamil', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--maroon-primary);
   display: block;
-  width: 100%;
-  text-align: center;
-  font-size: 11px;
-  color: var(--gold-primary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-top: 4px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  opacity: 0.85;
 }
 
-.details-toggle:hover {
-  opacity: 1;
-}
-
-.details-card {
-  margin-top: 10px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(18, 26, 22, 0.9);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  font-size: 11px;
-  line-height: 1.5;
-  color: #D1D5DB;
-}
-
-.sloka-box {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(212, 175, 55, 0.25);
-  font-family: 'Cinzel', serif;
-  color: var(--gold-light);
+.listen-english-sub {
+  font-size: 10px;
   font-style: italic;
-  font-size: 10.5px;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* Progress Bar Track */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  background: #E5D5BA;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-primary), var(--maroon-primary));
+  border-radius: 4px;
+  transition: width 0.15s linear;
+}
+
+/* Footer Section */
+.footer-heritage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--gold-border);
+  margin-top: 0.4rem;
+}
+
+.gopuram-icon {
+  width: 32px;
+  height: 42px;
+  opacity: 0.75;
+}
+
+.footer-center-text {
   text-align: center;
+}
+
+.footer-tamil-banner {
+  font-family: 'Noto Serif Tamil', serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--maroon-primary);
+  display: block;
+}
+
+.footer-english-banner {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+/* 8-Doll Rapid Selector Strip */
+.selector-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(201, 151, 56, 0.2);
+}
+
+.doll-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold-border);
+  background: #FDF9F0;
+  color: var(--maroon-primary);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doll-pill:hover {
+  transform: scale(1.08);
+  border-color: var(--maroon-primary);
+}
+
+.doll-pill.active {
+  background: var(--maroon-primary);
+  color: #FFFFFF;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 8px rgba(201, 151, 56, 0.7);
+  transform: scale(1.12);
 }
